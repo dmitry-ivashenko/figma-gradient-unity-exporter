@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<body>
+<button id="copyButton">Copy Gradient</button>
+<pre id="debug">
+    
+</pre>
+<script>
+    document.getElementById('copyButton').onclick = () => {
+        parent.postMessage({ pluginMessage: { type: 'copy-gradient' } }, '*');
+    };
+
+    onmessage = event => {
+        if (event.data.pluginMessage.type === 'gradient-data') {
+            const gradientData = event.data.pluginMessage.gradientData;
+            copyToClipboard(JSON.stringify(gradientData, null, 2));
+            displayGradientData(gradientData);
+        } else if (event.data.pluginMessage.type === 'error') {
+            alert(event.data.pluginMessage.message);
+        }
+    };
+
+    function copyToClipboard(text) {
+        const input = document.createElement('textarea');
+        document.body.appendChild(input);
+        input.value = text;
+        input.focus();
+        input.select();
+        const result = document.execCommand('copy');
+        document.body.removeChild(input);
+    }
+
+    function displayGradientData(data) {
+        const debugElement = document.getElementById('debug');
+        debugElement.textContent = JSON.stringify(data, null, 2);
+    }
+</script>
+</body>
+</html>
