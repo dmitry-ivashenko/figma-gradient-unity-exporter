@@ -3,16 +3,11 @@
   "id": "1377466163061582193",
   "api": "1.0.0",
   "main": "code.js",
-  "capabilities": [],
+  "capabilities": ["codegen"],
   "enableProposedApi": false,
   "documentAccess": "dynamic-page",
-  "editorType": [
-    "figma"
-  ],
-  "ui": "ui.html",
-  "networkAccess": {
-    "allowedDomains": [
-      "none"
-    ]
-  }
+  "editorType": ["figma", "dev"],
+  "ui": "index.html",
+  "networkAccess": { "allowedDomains": ["none"] },
+  "codegenLanguages": [ { "label": "Unity", "value": "JSON" }]
 }

@@ -1,8 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+</head>
 <body>
-<button id="copyButton">Copy Gradient</button>
-<pre id="debug">
+<button id="copyButton" style="display: none;" >Copy Gradient</button>
+<pre id="debug" style="display: none; font-size: small">
     
 </pre>
 <script>
@@ -17,6 +20,10 @@
             displayGradientData(gradientData);
         } else if (event.data.pluginMessage.type === 'error') {
             alert(event.data.pluginMessage.message);
+        } else if (event.data.pluginMessage.type === 'mode') {
+            // show copyButton
+            document.getElementById('copyButton').style.display = 'block';
+            document.getElementById('debug').style.display = 'block';
         }
     };
 
@@ -35,5 +42,6 @@
         debugElement.textContent = JSON.stringify(data, null, 2);
     }
 </script>
+<script type="module" src="./app.js"></script>
 </body>
 </html>
