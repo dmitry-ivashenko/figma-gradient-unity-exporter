@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
+    <title></title>
 </head>
 <body>
 <button id="copyButton" style="display: none;" >Copy Gradient</button>
@@ -14,16 +15,37 @@
     };
 
     onmessage = event => {
-        if (event.data.pluginMessage.type === 'gradient-data') {
-            const gradientData = event.data.pluginMessage.gradientData;
-            copyToClipboard(JSON.stringify(gradientData, null, 2));
-            displayGradientData(gradientData);
-        } else if (event.data.pluginMessage.type === 'error') {
-            alert(event.data.pluginMessage.message);
-        } else if (event.data.pluginMessage.type === 'mode') {
-            // show copyButton
-            document.getElementById('copyButton').style.display = 'block';
-            document.getElementById('debug').style.display = 'block';
+        switch (event.data.pluginMessage.type) {
+            case 'copy-gradient-data':
+            {
+                let json = event.data.pluginMessage.gradientData
+                    ? JSON.stringify(event.data.pluginMessage.gradientData, null, 2)
+                    : "";
+
+                if (json)
+                    copyToClipboard(json);
+
+                document.getElementById('debug').textContent = json;
+                break;
+            }
+            case 'gradient-data':
+            {
+                document.getElementById('debug').textContent = event.data.pluginMessage.gradientData
+                    ? JSON.stringify(event.data.pluginMessage.gradientData, null, 2)
+                    : "";
+                break;
+            }
+            case 'mode':
+            {
+                document.getElementById('copyButton').style.display = 'block';
+                document.getElementById('debug').style.display = 'block';
+                break;
+            }
+            case 'error':
+            {
+                alert(event.data.pluginMessage.message);
+                break;
+            }
         }
     };
 
@@ -33,13 +55,8 @@
         input.value = text;
         input.focus();
         input.select();
-        const result = document.execCommand('copy');
+        document.execCommand('copy');
         document.body.removeChild(input);
-    }
-
-    function displayGradientData(data) {
-        const debugElement = document.getElementById('debug');
-        debugElement.textContent = JSON.stringify(data, null, 2);
     }
 </script>
 <script type="module" src="./app.js"></script>

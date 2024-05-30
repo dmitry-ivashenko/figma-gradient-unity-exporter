@@ -1,8 +1,5 @@
 
-const PRINT_WIDTH = 50;
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function formatCode({ language, code, printWidth = PRINT_WIDTH }) {
+function formatCode({ language, code}) {
     switch (language) {
         case "JSON":
             return JSON.stringify(JSON.parse(code), null, 2);
