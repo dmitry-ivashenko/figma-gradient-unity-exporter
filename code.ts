@@ -32,29 +32,45 @@ function extractLinearGradientParamsFromTransform(
   }
 }
 
+function extractRadialGradientParamsFromTransform(
+    shapeWidth: number,
+    shapeHeight: number,
+    t: Transform
+) {
+  const transform = t.length === 2 ? [...t, [0, 0, 1]] : [...t]
+  const mxInv = matrixInverse(transform)
+  const center = applyMatrixToPoint(mxInv, [0.5, 0.5])
+  const radius = Math.sqrt(transform[0][0] * transform[0][0] + transform[1][0] * transform[1][0])
+  return {
+    center: [center[0] * shapeWidth, center[1] * shapeHeight],
+    radius: 0.5 / radius
+  }
+}
+
 function round(n: number, digits: number = 5) {
   return Math.round(n * Math.pow(10, digits)) / Math.pow(10, digits);
 }
 
 function multiplyAlpha(color: { r: any; g: any; b: any; a: number }, opacity: number) {
-    return {
-        r: color.r,
-        g: color.g,
-        b: color.b,
-        a: color.a * opacity
-    };
+  return {
+    r: color.r,
+    g: color.g,
+    b: color.b,
+    a: color.a * opacity
+  };
 }
 
 figma.showUI(__html__, { width: 300, height: 700 });
 
 figma.ui.onmessage = msg => {
+  let params;
   if (msg.type === 'copy-gradient') {
     const nodes = figma.currentPage.selection;
     // @ts-ignore
     if (nodes.length > 0 && nodes[0].fills && nodes[0].fills.length > 0) {
       // @ts-ignore
-      const fill = nodes[0].fills.find(f => f.type === 'GRADIENT_LINEAR');
-      if (fill && fill.type === 'GRADIENT_LINEAR' && fill.gradientTransform && fill.gradientTransform.length > 1) {
+      const fill = nodes[0].fills.find(f => f.type === 'GRADIENT_LINEAR' || f.type === 'GRADIENT_RADIAL');
+      if (fill && (fill.type === 'GRADIENT_LINEAR' || fill.type === 'GRADIENT_RADIAL') && fill.gradientTransform && fill.gradientTransform.length > 1) {
         const gradient = fill;
         const gradientTransform = gradient.gradientTransform;
 
@@ -73,33 +89,52 @@ figma.ui.onmessage = msg => {
           // @ts-ignore
           const nodeHeight = nodeBounds.height;
 
-          var params = extractLinearGradientParamsFromTransform(nodeWidth, nodeHeight, gradientTransform);
+          if (fill.type === 'GRADIENT_LINEAR') {
+            params = extractLinearGradientParamsFromTransform(nodeWidth, nodeHeight, gradientTransform);
 
-          const bounds = {
-            x1: round(params.start[0] / nodeWidth),
-            y1: round(params.start[1] / nodeHeight),
-            x2: round(params.end[0] / nodeWidth),
-            y2: round(params.end[1] / nodeHeight),
-            width: round(1 / Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))),
-            height: round(1)
-          };
+            const bounds = {
+              x1: round(params.start[0] / nodeWidth),
+              y1: round(params.start[1] / nodeHeight),
+              x2: round(params.end[0] / nodeWidth),
+              y2: round(params.end[1] / nodeHeight),
+              width: round(1 / Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))),
+              height: round(1)
+            };
 
-          const gradientData = {
-            type: gradient.type,
-            angle: round(angleDegrees),
-            bounds: bounds,
-          // @ts-ignore
-            gradientStops: gradient.gradientStops.map(stop => ({
-              color: multiplyAlpha(stop.color, gradient.opacity),
-              position: round(stop.position)
-            }))
-          };
-          figma.ui.postMessage({ type: 'gradient-data', gradientData });
+            const gradientData = {
+              type: gradient.type,
+              angle: round(angleDegrees),
+              bounds: bounds,
+              // @ts-ignore
+              gradientStops: gradient.gradientStops.map(stop => ({
+                color: multiplyAlpha(stop.color, gradient.opacity),
+                position: round(stop.position)
+              }))
+            };
+            figma.ui.postMessage({ type: 'gradient-data', gradientData });
+          } else if (fill.type === 'GRADIENT_RADIAL') {
+            params = extractRadialGradientParamsFromTransform(nodeWidth, nodeHeight, gradientTransform);
+
+            const gradientData = {
+              type: gradient.type,
+              center: {
+                x: round(params.center[0] / nodeWidth),
+                y: round(params.center[1] / nodeHeight)
+              },
+              radius: round(params.radius),
+              // @ts-ignore
+              gradientStops: gradient.gradientStops.map(stop => ({
+                color: multiplyAlpha(stop.color, gradient.opacity),
+                position: round(stop.position)
+              }))
+            };
+            figma.ui.postMessage({ type: 'gradient-data', gradientData });
+          }
         } else {
           figma.ui.postMessage({ type: 'error', message: 'Invalid gradient transform data.' });
         }
       } else {
-        figma.ui.postMessage({ type: 'error', message: 'No linear gradient fill found on the selected node or transform data is missing.' });
+        figma.ui.postMessage({ type: 'error', message: 'No linear or radial gradient fill found on the selected node or transform data is missing.' });
       }
     } else {
       figma.ui.postMessage({ type: 'error', message: 'No selection or no fills found.' });
