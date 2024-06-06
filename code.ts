@@ -108,7 +108,7 @@ function getGradientData() {
                 position: round(stop.position)
             }))
         };
-    } else if (fill.type === 'GRADIENT_RADIAL') {
+    } else if (false && fill.type === 'GRADIENT_RADIAL') { // disabled for now
         params = extractRadialGradientParamsFromTransform(nodeWidth, nodeHeight, gradientTransform);
 
         gradientData = {
