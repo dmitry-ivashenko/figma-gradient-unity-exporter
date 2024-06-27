@@ -89,15 +89,14 @@ function getGradientData() {
     if (fill.type === 'GRADIENT_LINEAR') {
         params = extractLinearGradientParamsFromTransform(nodeWidth, nodeHeight, gradientTransform);
 
-        const bounds = {
-            x1: round(params.start[0] / nodeWidth),
-            y1: round(params.start[1] / nodeHeight),
-            x2: round(params.end[0] / nodeWidth),
-            y2: round(params.end[1] / nodeHeight),
-            width: round(1 / Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))),
-            height: round(1)
-        };
-
+        let x1 = round(params.start[0] / nodeWidth);
+        let y1 = round(params.start[1] / nodeHeight);
+        let x2 = round(params.end[0] / nodeWidth);
+        let y2 = round(params.end[1] / nodeHeight);
+        let width = round(1 / Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)));
+        
+        const bounds = { x1: x1, y1: y1, x2: x2, y2: y2, width: width, height: round(1)};
+        
         gradientData = {
             type: fill.type,
             angle: round(angleDegrees),
